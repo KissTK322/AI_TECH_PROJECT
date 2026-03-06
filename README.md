@@ -19,7 +19,6 @@ The repository includes training notebooks, command-line evaluation scripts, mod
 ├── AI_TECH_PROJECT_TRAINING_FASTER_RCNN.ipynb
 ├── AI_TECH_PROJECT_TRAIN_casecade_frcnn.ipynb
 ├── app.py
-├── app_casecade_frcnn.py
 ├── eval_all.py
 ├── evaluator.py
 ├── models.py
