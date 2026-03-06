@@ -30,6 +30,10 @@ The repository includes training notebooks, command-line evaluation scripts, mod
 Create and activate a virtual environment, then install all required packages.
 
 ```bash
+Install casecade_frcnn.pt from google drive
+
+https://drive.google.com/file/d/1cE0rBZpSlWlBBJfgi-74nrDaNjO01ycC/view?usp=sharing
+
 python -m venv .venv
 source .venv/bin/activate      # macOS / Linux
 # .venv\Scripts\activate       # Windows
