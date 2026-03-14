@@ -10,7 +10,7 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.ops import boxes as box_ops
 from ultralytics import YOLO
 
-from evaluator_student_style_v2 import Prediction
+from evaluator_v2 import Prediction
 
 
 class YOLOPredictor:
