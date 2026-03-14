@@ -2,8 +2,8 @@ import argparse
 import time
 from pathlib import Path
 
-from evaluator_student_style_v2 import run_full_evaluation
-from models_student_style_v2 import (
+from evaluator_v2 import run_full_evaluation
+from models_v2 import (
     DetectorWrapper,
     YOLOPredictor,
     build_cascade_frcnn,
