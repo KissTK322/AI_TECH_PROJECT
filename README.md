@@ -1,46 +1,42 @@
-
 # AI_TECH_PROJECT
 
-## Project overview
+## Project Overview
 
-This project is about **parasitic egg detection from microscopic images** using multiple object detection approaches:
+This project is about **parasitic egg detection from microscopic images** using object detection models.  
+The repository includes:
 
-- **YOLO** for training and fast inference
-- **Faster R-CNN** as a two-stage baseline
-- **Cascade Faster R-CNN** as a custom two-stage detector with multi-stage box refinement
+- training notebooks for **Google Colab**
+- local Python scripts for **VS Code / terminal / desktop GUI**
+- evaluation tools for comparing predictions with **COCO-format ground truth**
+- model-building code for **Faster R-CNN** and **Cascade Faster R-CNN**
 
-The repository is split into **two working parts**:
-
-1. **Training / experiment notebooks (`.ipynb`)**  
-   These are mainly for **Google Colab** because they mount Google Drive, install packages inside cells, unzip datasets from Drive, train models, save checkpoints, and run evaluation plots.
-
-2. **Local Python files (`.py`)**  
-   These are mainly for **VS Code or any local Python environment** on Windows/Linux/macOS.  
-   They are used for:
-   - desktop GUI review
-   - command-line evaluation
-   - model rebuilding/loading
-   - metric computation and export
+Even though the repository contains YOLO, Faster R-CNN, and Cascade Faster R-CNN, the **main model used in this project is Cascade Faster R-CNN**.  
+So in this README, the workflow is written around **Cascade Faster R-CNN as the main pipeline**, and the other files are explained as supporting files for comparison, baseline testing, or extra experiments.
 
 ---
 
-## Recommended platform for each file
+## Main Idea of the Whole Repository
 
-### Use in **Google Colab**
-These files are training notebooks and depend on Colab-style workflow:
+The repository can be understood as **two connected parts**.
 
-- `AI_TECH_PROJECT_TRAINING_YOLO_v2.ipynb`
-- `AI_TECH_PROJECT_TRAINING_FASTER_RCNN_v2.ipynb`
+### Part 1: Training and experiments in Google Colab
+These files are notebooks:
+
 - `AI_TECH_PROJECT_TRAIN_casecade_frcnn_v2.ipynb`
+- `AI_TECH_PROJECT_TRAINING_FASTER_RCNN_v2.ipynb`
+- `AI_TECH_PROJECT_TRAINING_YOLO_v2.ipynb`
 
-Why Colab is recommended:
-- the notebooks use `drive.mount('/content/drive')`
-- they install packages inside cells with `!pip install ...`
-- they copy zip datasets from Google Drive to local Colab storage
-- they are written like experiment notebooks, not production scripts
+These notebooks are mainly used to:
 
-### Use in **VS Code / local Python**
-These files are local scripts/modules:
+- mount Google Drive
+- copy dataset zip files into Colab
+- prepare train / validation / test data
+- train the model
+- save checkpoints
+- run evaluation / plotting / extra analysis
+
+### Part 2: Local testing and evaluation in VS Code
+These files are Python scripts/modules:
 
 - `app_v2.py`
 - `eval_all_v2.py`
@@ -48,20 +44,68 @@ These files are local scripts/modules:
 - `models_v2.py`
 - `requirements.txt`
 
-Recommended local setup:
-- **VS Code**
-- **Python 3.10 or 3.11**
-- optional **CUDA GPU** if you want faster inference/evaluation for PyTorch models
+These local files are mainly used to:
+
+- load trained weights on another machine
+- inspect predictions with a GUI
+- run batch evaluation from the terminal
+- compute confusion matrix, per-class metrics, mAP, mIoU, macro F1
+- rebuild TorchVision-based detectors correctly before loading checkpoints
+
+So the full project flow is:
+
+1. **Train in Colab**
+2. **Save checkpoint**
+3. **Download checkpoint to local machine**
+4. **Use `app_v2.py` to inspect predictions visually**
+5. **Use `eval_all_v2.py` to run full evaluation**
+6. `eval_all_v2.py` internally uses `models_v2.py` and `evaluator_v2.py`
+
+That is the main connection between all files.
 
 ---
 
-## Repository structure
+## Recommended Platform for Each File
+
+## Use in Google Colab
+
+These files are better suited for Colab:
+
+- `AI_TECH_PROJECT_TRAIN_casecade_frcnn_v2.ipynb`
+- `AI_TECH_PROJECT_TRAINING_FASTER_RCNN_v2.ipynb`
+- `AI_TECH_PROJECT_TRAINING_YOLO_v2.ipynb`
+
+Why:
+- they are notebook-based
+- they usually install packages inside notebook cells
+- they are organized like experiment notebooks
+- they often use Google Drive paths and Colab local paths
+- they are more convenient for GPU training
+
+## Use in VS Code / local Python
+
+These files are better suited for local development:
+
+- `app_v2.py`
+- `eval_all_v2.py`
+- `evaluator_v2.py`
+- `models_v2.py`
+- `requirements.txt`
+
+Why:
+- they are normal Python files
+- they can be run from terminal or VS Code
+- they are used for inspection, evaluation, and model loading on a local machine
+
+---
+
+## Repository Structure
 
 ```bash
 .
-├── AI_TECH_PROJECT_TRAINING_YOLO_v2.ipynb
-├── AI_TECH_PROJECT_TRAINING_FASTER_RCNN_v2.ipynb
 ├── AI_TECH_PROJECT_TRAIN_casecade_frcnn_v2.ipynb
+├── AI_TECH_PROJECT_TRAINING_FASTER_RCNN_v2.ipynb
+├── AI_TECH_PROJECT_TRAINING_YOLO_v2.ipynb
 ├── app_v2.py
 ├── eval_all_v2.py
 ├── evaluator_v2.py
@@ -72,171 +116,176 @@ Recommended local setup:
 
 ---
 
-## Full workflow of the project
+## Recommended Workflow for This Project
 
-A simple way to understand the repository is:
+Because **Cascade Faster R-CNN is the main model**, the cleanest workflow is:
 
-### Part A: Train models in Colab
-Use the notebooks to:
-- mount Drive
-- copy dataset zip files from Drive
-- unpack them to Colab local storage
-- prepare train/validation/test data
-- train the selected detector
-- save checkpoints and logs
-- run extra evaluation/analysis cells
+### Step 1 — Train the main model in Colab
+Use:
 
-### Part B: Use trained weights on another machine
-After training is done, download or copy the trained weight files (`.pt` / `.pth`) to your local machine.
+```bash
+AI_TECH_PROJECT_TRAIN_casecade_frcnn_v2.ipynb
+```
 
-### Part C: Evaluate or inspect locally
-Then use local Python files to:
-- open the desktop review GUI (`app_v2.py`)
-- run batch evaluation from terminal (`eval_all_v2.py`)
-- compute metrics (`evaluator_v2.py`)
-- rebuild/load detector architectures (`models_v2.py`)
+This notebook is the main training notebook for the project.
+
+### Step 2 — Save the trained checkpoint
+After training, save the model checkpoint file, for example:
+
+- `cascade_frcnn_best.pth`
+- `best_cascade.pth`
+- or any checkpoint name you used
+
+### Step 3 — Download the checkpoint to your local machine
+Put the checkpoint inside your local project folder, for example:
+
+```bash
+project/
+├── app_v2.py
+├── eval_all_v2.py
+├── evaluator_v2.py
+├── models_v2.py
+├── requirements.txt
+├── weights/
+│   └── cascade_frcnn_best.pth
+├── data/
+│   ├── images/
+│   └── test.json
+└── classes.txt
+```
+
+### Step 4 — Open the model in the GUI
+Run:
+
+```bash
+python app_v2.py
+```
+
+Use the GUI to:
+- load the Cascade checkpoint
+- choose the image folder
+- choose the COCO ground-truth JSON
+- run prediction on all test images
+- inspect results one by one
+- export CSV
+- save failed cases
+- display a confusion matrix
+
+### Step 5 — Run full batch evaluation
+Run:
+
+```bash
+python eval_all_v2.py \
+  --coco_json data/test.json \
+  --img_dir data/images \
+  --cascade_best weights/cascade_frcnn_best.pth \
+  --classes_txt classes.txt \
+  --score_thr 0.25 \
+  --iou_thr 0.50 \
+  --device cuda \
+  --run_name eval_cascade_main
+```
+
+This is the main evaluation command if Cascade Faster R-CNN is your primary model.
 
 ---
 
-## What you need before running the project on another machine
+## Setup on Another Machine
 
-Before running anything locally, prepare these items first:
+If someone downloads this project and wants to run it on another computer, these are the recommended steps.
 
-### 1. Python
-Install:
-- **Python 3.10** or **Python 3.11**
+## 1) Install Python
 
-### 2. Code files
-Copy these files into the same project folder:
+Recommended version:
+
+- **Python 3.10** or
+- **Python 3.11**
+
+Using these versions is safer because PyTorch, torchvision, PyQt5, and ultralytics are commonly used with them.
+
+---
+
+## 2) Download / copy all required files
+
+At minimum, copy these files:
+
 - `app_v2.py`
 - `eval_all_v2.py`
 - `evaluator_v2.py`
 - `models_v2.py`
 - `requirements.txt`
 
-### 3. Dataset
-Prepare:
-- a folder containing the test images
-- a **COCO-format JSON** annotation file for the same image set
+If training is also needed, copy the notebooks too:
 
-### 4. Model weights
-Prepare whichever model you want to use:
-- YOLO `.pt`
-- Faster R-CNN `.pth`
-- Cascade Faster R-CNN `.pth` or `.pt` depending on how you saved it
-
-### 5. Optional class list file
-For Faster R-CNN and Cascade Faster R-CNN evaluation, you will usually need either:
-- `classes.txt`, or
-- `--num_classes`
-
-because the script must rebuild the TorchVision detector with the correct number of classes.
+- `AI_TECH_PROJECT_TRAIN_casecade_frcnn_v2.ipynb`
+- `AI_TECH_PROJECT_TRAINING_FASTER_RCNN_v2.ipynb`
+- `AI_TECH_PROJECT_TRAINING_YOLO_v2.ipynb`
 
 ---
 
-## Important setup note before running locally
+## 3) Create a virtual environment
 
-### File import names must match
+### Windows
 
-In the current local scripts, the imports may still point to earlier filenames such as:
-
-- `evaluator_student_style_v2`
-- `models_student_style_v2`
-
-If your actual files are named:
-- `evaluator_v2.py`
-- `models_v2.py`
-
-then you must do **one** of these:
-
-#### Option 1: rename the files
-Rename:
-- `evaluator_v2.py` → `evaluator_student_style_v2.py`
-- `models_v2.py` → `models_student_style_v2.py`
-
-#### Option 2: edit the import lines
-Update the imports inside the files so they match your current filenames.
-
-For example:
-
-```python
-# in eval_all_v2.py
-from evaluator_v2 import run_full_evaluation
-from models_v2 import DetectorWrapper, YOLOPredictor, build_cascade_frcnn, build_faster_rcnn
-
-# in models_v2.py
-from evaluator_v2 import Prediction
-```
-
-This is very important. If you do not fix the import names first, the local scripts will fail with `ModuleNotFoundError`.
-
----
-
-## Installation on another machine
-
-### 1. Open the project folder
-Open the folder in **VS Code**.
-
-### 2. Create a virtual environment
-
-#### Windows
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
 ```
 
-#### macOS / Linux
+### macOS / Linux
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Install packages
+---
+
+## 4) Install required packages
+
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. PyTorch note
-If you want GPU support, sometimes it is better to install `torch` and `torchvision` from the official PyTorch command for your CUDA version instead of only relying on `requirements.txt`.
-
 ---
 
-## requirements.txt
+## 5) Important note about PyTorch and CUDA
 
-The current requirements file includes the main packages used across the repository:
+If the local machine has an NVIDIA GPU, it is often better to install `torch` and `torchvision` using the official PyTorch command that matches the installed CUDA version.
 
-```txt
-numpy>=1.24
-pandas>=2.0
-matplotlib>=3.7
-opencv-python>=4.8
-Pillow>=10.0
-scikit-learn>=1.3
-tqdm>=4.66
-PyYAML>=6.0
-seaborn>=0.13
-ultralytics>=8.2
-PyQt5>=5.15
-pycocotools>=2.0.7
-torch>=2.1
-torchvision>=0.16
-```
-
----
-
-## Expected dataset format
-
-### For local evaluation (`app_v2.py` and `eval_all_v2.py`)
-You should have something like this:
+Example idea:
 
 ```bash
-project_folder/
-├── images/
-│   ├── img1.jpg
-│   ├── img2.jpg
-│   └── ...
-├── test.json
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+```
+
+But if CPU-only is fine, the normal `requirements.txt` installation is usually enough.
+
+---
+
+## 6) Prepare the dataset
+
+For local evaluation, you need:
+
+- an image folder
+- a COCO-format JSON annotation file
+- the model checkpoint
+- optionally `classes.txt`
+
+Example:
+
+```bash
+project/
+├── data/
+│   ├── images/
+│   │   ├── img001.jpg
+│   │   ├── img002.jpg
+│   │   └── ...
+│   └── test.json
+├── weights/
+│   └── cascade_frcnn_best.pth
+├── classes.txt
 ├── app_v2.py
 ├── eval_all_v2.py
 ├── evaluator_v2.py
@@ -244,447 +293,489 @@ project_folder/
 └── requirements.txt
 ```
 
-Where:
-- `images/` contains the actual image files
-- `test.json` is a valid **COCO detection annotation file**
-- image file names inside JSON must match the real files in `images/`
+---
 
-### For notebook training
-The notebooks are written for zip-based data copied from Google Drive.  
-Typical structure inside the zip should include:
-- images
-- COCO JSON annotations
-- category definitions
+## 7) About `classes.txt`
 
-The notebooks search for annotation JSON files automatically, then split or convert them as needed.
+For TorchVision-based models such as:
+
+- Faster R-CNN
+- Cascade Faster R-CNN
+
+the script needs to know the number of classes so it can rebuild the detector correctly before loading weights.
+
+You can provide that in one of two ways:
+
+### Option A — use `classes.txt`
+One class name per line:
+
+```txt
+class_1
+class_2
+class_3
+...
+```
+
+### Option B — use `--num_classes`
+If you know the number of object classes directly, you can pass it from the command line.
+
+Important note:
+- in the code, TorchVision models are created with **background included**
+- so if your dataset has `N` object classes, the internal model may use `N + 1`
+
+The script already handles this logic.
 
 ---
 
-## Detailed explanation of each file
+## 8) Path setup
 
-# 1) `AI_TECH_PROJECT_TRAINING_YOLO_v2.ipynb`
+There are two different path situations in this repository.
 
-## Purpose
-This notebook is used to train the **YOLO** model in **Google Colab**.
+### A. In Colab notebooks
+Paths are usually things like:
+- `/content/...`
+- `/content/drive/MyDrive/...`
 
-## Main job of this notebook
-It handles the full YOLO training pipeline:
-- mount Google Drive
-- install YOLO-related packages
-- copy dataset zip files from Drive to local Colab storage
-- unpack the dataset
-- convert COCO annotations to YOLO `.txt` labels
-- create train/validation/test splits
-- generate the dataset YAML file
-- train the selected YOLO model
-- plot training results
+These paths are for Google Colab only.
 
-## Main sections inside the notebook
+### B. In local Python scripts
+Paths should be local machine paths such as:
+- `data/images`
+- `data/test.json`
+- `weights/cascade_frcnn_best.pth`
+- `classes.txt`
 
-### Setup
-- mounts Google Drive
-- installs `ultralytics`, `seaborn`, `matplotlib`, `pandas`
+So when moving from Colab to local machine, you must change the paths.
 
-### Paths and dataset prep
-- defines dataset zip path on Drive
-- defines local temp folder
-- defines experiment output folder
+---
 
-### Label conversion and split
-- converts COCO boxes into YOLO text files
-- writes split lists
-- writes YAML config used by Ultralytics
+## Main Files and What Each One Does
 
-### Training and summary
-- selects YOLO model
-- runs training
-- logs results
-- plots final graphs
+This section explains all 8 files in the project and how they connect.
 
-## Important functions
+---
 
-### `prepare_local_copy()`
-Copies the zip files from Google Drive into local Colab storage and extracts them.
+# 1) `AI_TECH_PROJECT_TRAIN_casecade_frcnn_v2.ipynb`
 
-### `coco_to_yolo_txt(json_path, img_dir, label_dir, prefix="")`
-Reads a COCO JSON file and converts each annotation into YOLO text format.
+## Main role
+This is the **main training notebook** of the project.  
+If your project focuses on **Cascade Faster R-CNN**, this is the most important notebook.
 
-### `prepare_datasets()`
-Builds the train/validation/test structure for YOLO training and writes dataset config files.
+It is used to:
+- prepare the dataset
+- create train / validation / test split
+- define the custom Cascade Faster R-CNN model
+- train the model
+- save checkpoints
+- run evaluation and extra analysis after training
 
-### `run_selected_training()`
-Runs training for the selected YOLO model(s), saves outputs, and records results.
+## Recommended platform
+- **Google Colab**
 
-## When to use this file
+## What this notebook is mainly for
 Use this notebook when you want to:
-- train YOLO from scratch or fine-tune it
-- rebuild YOLO labels from COCO format
-- compare YOLO experiments in Colab
+- train the main detector
+- continue training
+- evaluate a saved Cascade checkpoint in notebook form
+- inspect confusion matrix, PR-style statistics, and mIoU-related results
+
+## Main functions / classes inside
+
+### `prepare_local_data()`
+Copies or prepares dataset files into a local working directory for training.
+
+### `find_coco_json()`
+Searches for the correct COCO annotation file.
+
+### `collate_batch()`
+Custom collate function for the DataLoader so batches of detection data can be loaded correctly.
+
+### `EggCocoDataset`
+Custom dataset class for reading images and COCO annotations in a format suitable for TorchVision detection models.
+
+### `encode_boxes()`
+Encodes ground-truth boxes relative to proposals for box regression.
+
+### `decode_boxes()`
+Decodes predicted box deltas back into real bounding boxes.
+
+### `TwoFCHead`
+Defines the two fully connected layers used in the RoI head.
+
+### `ClassAgnosticPredictor`
+Defines a class-agnostic box regressor with class prediction output.
+
+### `subsample_labels()`
+Samples positive and negative proposals for training.
+
+### `fastrcnn_loss_agnostic()`
+Computes classification loss and class-agnostic box regression loss.
+
+### `CascadeRoIHeads`
+This is one of the most important custom parts in the notebook.  
+It implements the **multi-stage Cascade RoI head** used by the model.
+
+### `fix_coco_gt()`
+Repairs missing COCO fields such as `area` or `iscrowd` when needed.
+
+### `coco_evaluate()`
+Runs COCO evaluation logic on saved detection results.
+
+### `train_one_epoch()`
+Trains the model for one epoch.
+
+### `save_ckpt()`
+Saves model checkpoints.
+
+### `try_resume()`
+Loads previous checkpoint information and resumes training if available.
+
+### `save_model_to_drive()`
+Saves model/checkpoint outputs back to Google Drive.
+
+### `cuda_sync()`
+Synchronizes CUDA timing when measuring inference speed.
+
+### `timed_frcnn_predict()`
+Runs a prediction pass while measuring time.
+
+### `compute_per_class_ious()`
+Computes IoU statistics per class.
+
+### `frcnn_label_to_classidx()`
+Maps model labels into class indices.
+
+### `load_frcnn_ckpt()`
+Loads a saved FRCNN/Cascade checkpoint.
+
+### `eval_test_frcnn_miou_and_time()`
+Evaluates mean IoU and inference time on the test set.
+
+### `plot_cm()`
+Plots a confusion matrix.
+
+### `pr_and_cm_from_detections()`
+Computes precision/recall style matching and confusion matrix values from detections.
+
+### `coco_eval_from_results()`
+Runs COCO mAP evaluation from a saved result structure.
+
+### `eval_frcnn_on_test()`
+Full test evaluation helper for FRCNN-style models.
+
+## Summary of this notebook
+This notebook is the **center of the Cascade Faster R-CNN pipeline**.  
+If you only keep one training notebook as the main one, this should be the one.
 
 ---
 
 # 2) `AI_TECH_PROJECT_TRAINING_FASTER_RCNN_v2.ipynb`
 
-## Purpose
-This notebook is used to train and analyze the **Faster R-CNN** baseline in **Google Colab**.
+## Main role
+This notebook is the **Faster R-CNN baseline notebook**.
 
-## Main job of this notebook
-It handles:
-- dataset copy/unzip from Drive
-- train/validation split
-- dataset/dataloader creation
-- Faster R-CNN model building
-- training loop
-- validation using COCO metrics
-- checkpoint/history saving
-- extra analysis such as confusion matrix, mIoU, and timing
+It is useful when you want to:
+- compare Cascade Faster R-CNN against normal Faster R-CNN
+- test a simpler two-stage detector
+- measure whether the cascade design really improves the result
 
-## Main sections inside the notebook
+## Recommended platform
+- **Google Colab**
 
-### Setup
-- mounts Drive
-- installs PyTorch-related utilities and COCO tools
-
-### Data split and loading
-- finds annotation files
-- creates train/validation JSON files
-- builds a PyTorch dataset and dataloaders
-
-### Model and training
-- builds a Faster R-CNN model
-- replaces the classification head
-- trains the model
-- saves logs/checkpoints
-
-### Extra analysis
-- confusion matrix
-- mIoU comparison
-- timing/inference analysis
-- test evaluation helpers
-
-## Important functions
+## Main functions / classes inside
 
 ### `prepare_local_data()`
-Copies training data from Drive to local storage and unpacks it.
+Prepares local dataset files.
 
-### `find_coco_json(root_dir)`
-Searches for a valid COCO JSON annotation file.
+### `find_coco_json()`
+Finds the correct COCO JSON annotation file.
 
-### `collate_batch(batch)`
-Custom collate function for variable-length detection targets.
+### `collate_batch()`
+Custom batch collation for detection data.
 
 ### `EggCocoDataset`
-PyTorch dataset class that loads images and COCO annotations.
+Reads image and annotation data for training/evaluation.
 
-### `train_one_epoch(...)`
+### `train_one_epoch()`
 Runs one training epoch for Faster R-CNN.
 
-### `coco_evaluate(...)`
-Runs validation with COCO-style evaluation.
+### `coco_evaluate()`
+Runs COCO evaluation.
 
-### `fix_coco_gt(...)`
-Cleans or rewrites ground-truth JSON so COCO evaluation works correctly.
+### `fix_coco_gt()`
+Repairs missing COCO fields if needed.
 
-### `detection_confusion_matrix(...)`
-Builds a confusion matrix for object detection results.
+### `detection_confusion_matrix()`
+Builds a confusion-matrix-style view for detections.
 
-### `load_frcnn_ckpt(...)`
+### `map_yolo_cls_to_classidx()`
+Maps YOLO class IDs into the shared class-index format for comparisons.
+
+### `frcnn_label_to_classidx()`
+Maps Faster R-CNN labels into class indices.
+
+### `load_frcnn_ckpt()`
 Loads a saved Faster R-CNN checkpoint.
 
-### `compute_image_ious_per_class(...)`
-Computes IoU values grouped by class.
+### `compute_image_ious_per_class()`
+Computes IoU per image and per class.
 
-### `eval_miou_frcnn(...)`
-Evaluates mean IoU for Faster R-CNN outputs.
+### `eval_miou_yolo()`
+Evaluates mean IoU for YOLO predictions.
 
-### `eval_test_frcnn_miou_and_time(...)`
-Measures mIoU and average inference time on the test set.
+### `eval_miou_frcnn()`
+Evaluates mean IoU for Faster R-CNN predictions.
 
-### `plot_cm(...)`
-Plots the confusion matrix.
+### `cuda_sync()`
+Synchronizes CUDA for timing.
 
-### `pr_and_cm_from_detections(...)`
-Computes precision/recall-style counts and confusion matrix values from detections.
+### `timed_yolo_predict()`
+Measures YOLO inference time.
 
-### `eval_frcnn_on_test(...)`
-Runs final Faster R-CNN evaluation on the test set.
+### `timed_frcnn_predict()`
+Measures Faster R-CNN inference time.
 
-### `top_confusions(...)`
-Shows the most common class confusions.
+### `compute_per_class_ious()`
+Computes per-class IoU.
 
-## When to use this file
-Use this notebook when you want to:
-- train the Faster R-CNN baseline
-- analyze class confusion and IoU
-- compare Faster R-CNN performance against YOLO or Cascade
+### `eval_test_yolo_miou_and_time()`
+Evaluates YOLO test performance with mIoU and timing.
+
+### `eval_test_frcnn_miou_and_time()`
+Evaluates Faster R-CNN test performance with mIoU and timing.
+
+### `plot_cm()`
+Plots confusion matrix.
+
+### `pr_and_cm_from_detections()`
+Computes confusion matrix and PR-style matching data from detections.
+
+### `coco_eval_from_results()`
+Runs COCO evaluation from result data.
+
+### `yolo_results_csv_path()`
+Helps locate YOLO result CSV files.
+
+### `read_yolo_best_losses()`
+Reads YOLO training history values from CSV/log files.
+
+### `eval_yolo_on_test()`
+Evaluates YOLO on the test set.
+
+### `eval_frcnn_on_test()`
+Evaluates Faster R-CNN on the test set.
+
+### `save_cm_csv()`
+Saves confusion matrix values to CSV.
+
+### `plot_cm_numbers()`
+Plots confusion matrix with numeric values.
+
+### `top_confusions()`
+Finds the most frequent confusion pairs.
+
+## Summary of this notebook
+This notebook is useful as a **baseline comparison notebook**.  
+It is not the main project notebook, but it is important if you want to show that Cascade Faster R-CNN performs better than standard Faster R-CNN.
 
 ---
 
-# 3) `AI_TECH_PROJECT_TRAIN_casecade_frcnn_v2.ipynb`
+# 3) `AI_TECH_PROJECT_TRAINING_YOLO_v2.ipynb`
 
-## Purpose
-This notebook is used to train the custom **Cascade Faster R-CNN** style detector in **Google Colab**.
+## Main role
+This notebook is the **YOLO training notebook**.
 
-## Main job of this notebook
-It performs:
-- dataset copy/unzip from Drive
-- train/validation split
-- custom dataset creation
-- custom cascade-style RoI head definition
-- training loop
-- checkpoint saving/resume
-- extra evaluation for mIoU, timing, confusion matrix, and COCO metrics
+It is mainly used for:
+- fast training experiments
+- quick baseline comparison
+- converting COCO labels into YOLO label format
+- testing how a one-stage detector behaves on the dataset
 
-## Main sections inside the notebook
+## Recommended platform
+- **Google Colab**
 
-### Setup
-- mounts Drive
-- installs `pycocotools`, `scikit-learn`, `tqdm`
-- imports PyTorch/TorchVision tools
+## Main functions inside
 
-### Data split
-- finds the COCO JSON file
-- limits target dataset size
-- writes train/validation annotation files
+### `prepare_local_copy()`
+Prepares local copies of the dataset in Colab.
 
-### Model
-- defines helper functions for box encoding/decoding
-- defines custom cascade-style heads
-- builds the detector from a Faster R-CNN base
+### `coco_to_yolo_txt()`
+Converts COCO annotations into YOLO `.txt` label format.
 
-### Training
-- training loop
-- checkpoint save/load
-- resume from checkpoint
-- export/save final model
+### `prepare_datasets()`
+Builds the dataset structure required for YOLO training.
 
-### Test + extra checks
-- evaluate on test split
-- compute mIoU
-- measure inference time
-- build confusion matrix
-- run COCO evaluation
+### `run_selected_training()`
+Starts YOLO training using the selected model/configuration.
 
-## Important functions
-
-### `prepare_local_data()`
-Copies dataset zip files from Drive to Colab local storage and extracts them.
-
-### `find_coco_json(root_dir)`
-Finds the COCO annotation JSON file inside the extracted dataset.
-
-### `collate_batch(batch)`
-Batch collation helper for detection data.
-
-### `EggCocoDataset`
-Dataset class for loading egg images and annotations.
-
-### `encode_boxes(...)`
-Encodes ground-truth boxes relative to proposal boxes.
-
-### `decode_boxes(...)`
-Decodes predicted box deltas back to image coordinates.
-
-### `TwoFCHead`
-Two fully connected layers used in the custom RoI head.
-
-### `ClassAgnosticPredictor`
-Predictor head with class scores and class-agnostic box regression.
-
-### `subsample_labels(...)`
-Samples training labels for the detector head.
-
-### `fastrcnn_loss_agnostic(...)`
-Computes classification and regression loss for the class-agnostic head.
-
-### `CascadeRoIHeads`
-Main custom cascade-style multi-stage RoI head.
-
-### `coco_evaluate(...)`
-Validation evaluation using COCO metrics.
-
-### `train_one_epoch(...)`
-Runs one training epoch for the Cascade Faster R-CNN model.
-
-### `save_ckpt(...)`
-Saves a checkpoint to disk.
-
-### `try_resume(...)`
-Loads the latest checkpoint and resumes training if available.
-
-### `save_model_to_drive(...)`
-Copies the final saved model/checkpoint back to Google Drive.
-
-### `timed_frcnn_predict(...)`
-Measures inference time for the detector.
-
-### `compute_per_class_ious(...)`
-Computes IoU statistics per class.
-
-### `eval_test_frcnn_miou_and_time(...)`
-Runs test-set mIoU + inference timing evaluation.
-
-### `plot_cm(...)`
-Plots confusion matrix.
-
-### `pr_and_cm_from_detections(...)`
-Builds precision/recall and confusion matrix counts from detections.
-
-### `coco_eval_from_results(...)`
-Runs COCO evaluation from saved detection results.
-
-### `eval_frcnn_on_test(...)`
-Runs final evaluation on the test set.
-
-## When to use this file
-Use this notebook when you want to:
-- train the custom cascade model
-- test a cascade-style architecture on your dataset
-- compare against Faster R-CNN and YOLO
+## Summary of this notebook
+This notebook is useful for **comparison and baseline speed experiments**.  
+It is not the main notebook if your project focuses on Cascade Faster R-CNN, but it is still helpful if you want to compare one-stage and two-stage detection.
 
 ---
 
 # 4) `app_v2.py`
 
-## Purpose
-This file is a **desktop GUI application** for reviewing prediction results image by image.
+## Main role
+This file is the **main local desktop GUI** for checking model predictions visually.
 
-## Platform
-Run this in:
+Because this project uses **Cascade Faster R-CNN as the main model**, `app_v2.py` should be treated as the local review application for:
+
+- loading a trained Cascade/Faster R-CNN checkpoint
+- selecting the image folder
+- selecting the COCO ground-truth JSON
+- running prediction on the local test set
+- checking result images one by one
+- exporting CSV summary
+- saving failure cases
+- displaying confusion matrix
+
+## Recommended platform
 - **VS Code**
-- terminal
-- local Python environment with PyQt5 installed
+- or any local Python environment with desktop GUI support
 
-## Main job of this file
-It creates a desktop window where you can:
-- choose model weights
-- choose an image folder
-- choose a COCO ground-truth JSON file
-- run prediction on all images
-- compare prediction vs ground truth
-- browse through images
-- filter wrong predictions only
-- export CSV
-- save fail cases
-- show a confusion matrix popup
+## How it connects to the project
+This file is normally used **after training is already finished**.
 
-## Important functions and classes
+Typical use:
+1. train the model in `AI_TECH_PROJECT_TRAIN_casecade_frcnn_v2.ipynb`
+2. save the best checkpoint
+3. download the checkpoint
+4. run `app_v2.py`
+5. visually inspect how the checkpoint behaves on the test set
 
-### `to_qimage(image_bgr)`
-Converts an OpenCV BGR image into a Qt image object for display.
+## Main helper functions / classes inside
 
-### `draw_detection_boxes(image_bgr, boxes_xyxy, labels, scores, label_map, color=...)`
-Draws bounding boxes and class labels on the image.
+### `to_qimage()`
+Converts an OpenCV BGR image into a `QImage` so it can be shown in the PyQt interface.
 
-### `compare_prediction_with_gt(pred_boxes, pred_labels, gt_boxes, gt_labels, iou_thr=0.25)`
-Matches predictions with ground truth using IoU and returns TP, FP, FN, and match details.
+### `draw_detection_boxes()`
+Draws predicted or ground-truth boxes and labels on an image.
 
-### `ImagePopup`
-Simple popup dialog used to display a large image, such as the confusion matrix.
+### `compare_prediction_with_gt()`
+Compares predicted boxes against ground truth using IoU and class matching, then returns TP/FP/FN style results.
 
-### `DetectionReviewApp`
-Main GUI class that controls the whole application.
+### `ensure_coco_fields()`
+Adds missing COCO fields such as `iscrowd` or `area` if they are missing.
 
-Inside this class:
+### `normalize_int_mapping()`
+Normalizes mapping dictionaries so keys/values are integers.
 
-#### `_build_ui()`
-Creates all buttons, labels, preview areas, and layout.
+### `encode_box_targets()`
+Encodes regression targets for proposal refinement.
 
-#### `_connect_signals()`
-Connects button clicks to the corresponding methods.
+### `decode_box_deltas()`
+Decodes box deltas back into coordinate boxes.
 
-#### `refresh_path_info()`
-Updates the path summary shown in the GUI.
+### `TwoFCHead`
+RoI fully connected head.
 
-#### `pick_model()`
-Lets the user select a weight file.
+### `ClassAgnosticPredictor`
+Class-agnostic box regression predictor with class logits.
 
-#### `pick_image_folder()`
-Lets the user choose the image directory.
+### `sample_training_labels()`
+Samples positive and negative proposals.
 
-#### `pick_gt_json()`
-Lets the user choose the COCO JSON file.
+### `agnostic_fastrcnn_loss()`
+Loss function for class-agnostic FRCNN-style box regression.
 
-#### `load_resources()`
-Loads the model, COCO annotations, category mapping, and filename-to-image-id map.
+### `CascadeRoIHeads`
+Custom Cascade RoI heads used to rebuild the Cascade detector.
 
-#### `get_gt_for_image(file_name)`
-Returns ground-truth boxes and labels for one image.
+### `build_cascade_detector()`
+Builds the custom Cascade model architecture.
 
-#### `build_detail_text(record)`
-Creates the detailed text summary for one image.
+### `load_checkpoint_and_build_model()`
+Loads the checkpoint and rebuilds the correct model structure based on the dataset/classes.
 
-#### `run_all_predictions()`
-Runs the full prediction loop over all images and computes summary statistics.
+### `PreviewDialog`
+A small preview dialog used inside the GUI.
 
-#### `_run_single_image(image_path, file_name)`
-Runs inference and comparison for one image.
+### `CascadeReviewApp`
+The main PyQt application window.
 
-#### `refresh_preview()`
-Updates the displayed image pair in the GUI.
+## Important GUI methods inside `CascadeReviewApp`
 
-#### `show_prev()` / `show_next()`
-Moves between images.
+### `run_inference_on_image()`
+Runs prediction on a single image.
 
-#### `toggle_wrong_filter()`
-Shows only wrong images when enabled.
+### `run_all_predictions()`
+Runs prediction for the full selected image folder and stores the results.
 
-#### `export_csv()`
-Saves a CSV summary of all image-level results.
+### `show_prev()` / `show_next()`
+Moves between evaluated images.
 
-#### `save_fail_cases()`
-Writes only wrong examples into a `fail_cases/` folder.
+### `export_csv()`
+Exports result summary to CSV.
 
-#### `show_confusion_matrix()`
-Builds and displays a confusion matrix in a popup.
+### `save_fail_cases()`
+Saves incorrect images to a folder for manual review.
+
+### `show_confusion_matrix()`
+Shows a confusion matrix built from the current evaluation result.
 
 ### `main()`
-Starts the Qt application.
-
-## Important note about this app
-Even though the UI text mentions **Cascade FRCNN**, the actual model loading inside the file uses `YOLO(self.model_path)`.  
-So this GUI currently behaves like a **YOLO review app** unless you modify the loading logic.
+Starts the PyQt application.
 
 ## When to use this file
-Use this file when you want a visual local inspection tool instead of command-line output.
+Use `app_v2.py` when you want:
+- interactive checking
+- image-by-image inspection
+- debugging wrong detections
+- screenshots for reports/presentations
+- manual review of failure cases
 
 ---
 
 # 5) `eval_all_v2.py`
 
-## Purpose
-This file is the **main command-line evaluation launcher**.
+## Main role
+This file is the **main command-line evaluation script**.
 
-## Platform
-Run in:
-- **VS Code terminal**
-- Command Prompt / PowerShell
-- macOS Terminal / Linux Terminal
+It evaluates trained models on a COCO-format dataset and writes the outputs into:
 
-## Main job of this file
-It:
-- reads command-line arguments
-- selects which model(s) to evaluate
-- rebuilds Faster R-CNN / Cascade model architecture if needed
-- loads model wrappers
-- calls `run_full_evaluation(...)`
-- writes outputs into `runs_eval/<run_name>/...`
-- prints final summary numbers
+```bash
+runs_eval/<run_name>/
+```
 
-## Main functions
+Even though it supports multiple model types, for this project the main usage is usually:
 
-### `count_lines_in_class_file(path)`
-Counts non-empty lines in `classes.txt`.  
-This is used to infer the number of object classes.
+- `--cascade_best` for the main model
+- optionally `--frcnn_best` or YOLO weights for comparison
+
+## How it connects to the project
+This file is normally used after you already have:
+
+- test images
+- COCO JSON
+- model weights
+- class information
+
+It calls:
+- `models_v2.py` to rebuild and load the detector
+- `evaluator_v2.py` to calculate all metrics
+
+So the connection is:
+
+```bash
+eval_all_v2.py
+    -> models_v2.py
+    -> evaluator_v2.py
+```
+
+## Main functions inside
+
+### `count_lines_in_class_file()`
+Counts how many classes exist in `classes.txt`.
 
 ### `parse_args()`
-Defines all command-line arguments such as:
+Reads command-line arguments such as:
 - `--coco_json`
 - `--img_dir`
+- `--cascade_best`
+- `--frcnn_best`
 - `--yolo8_best`
 - `--yolo11_best`
-- `--frcnn_best`
-- `--cascade_best`
 - `--classes_txt`
 - `--num_classes`
 - `--score_thr`
@@ -693,143 +784,137 @@ Defines all command-line arguments such as:
 - `--run_name`
 - `--limit_images`
 
-### `get_torchvision_num_classes(args)`
-Returns the number of classes needed to rebuild TorchVision detectors.
+### `get_torchvision_num_classes()`
+Converts the given class information into the correct number of classes for TorchVision models.
 
 ### `main()`
-Main entry point:
-- prepares output folder
-- launches selected evaluations
-- prints final summary metrics
+Runs the whole evaluation process.
 
-## Supported models
-- YOLOv8s
-- YOLO11s
-- Faster R-CNN
-- Cascade Faster R-CNN
+## Recommended command for the main model
+Because Cascade Faster R-CNN is the main detector, this is the most important command:
 
-## Example commands
-
-### Evaluate YOLOv8
 ```bash
 python eval_all_v2.py \
-  --coco_json test.json \
-  --img_dir images \
-  --yolo8_best best.pt \
-  --device cuda
-```
-
-### Evaluate YOLO11
-```bash
-python eval_all_v2.py \
-  --coco_json test.json \
-  --img_dir images \
-  --yolo11_best best.pt \
-  --device cuda
-```
-
-### Evaluate Faster R-CNN
-```bash
-python eval_all_v2.py \
-  --coco_json test.json \
-  --img_dir images \
-  --frcnn_best faster_rcnn_best.pth \
+  --coco_json data/test.json \
+  --img_dir data/images \
+  --cascade_best weights/cascade_frcnn_best.pth \
   --classes_txt classes.txt \
-  --device cuda
+  --score_thr 0.25 \
+  --iou_thr 0.50 \
+  --device cuda \
+  --run_name eval_cascade_main
 ```
 
-### Evaluate Cascade Faster R-CNN
+## Optional comparison commands
+
+### Faster R-CNN baseline
+
 ```bash
 python eval_all_v2.py \
-  --coco_json test.json \
-  --img_dir images \
-  --cascade_best cascade_frcnn_best.pth \
+  --coco_json data/test.json \
+  --img_dir data/images \
+  --frcnn_best weights/faster_rcnn_best.pth \
   --classes_txt classes.txt \
-  --device cuda
+  --score_thr 0.25 \
+  --iou_thr 0.50 \
+  --device cuda \
+  --run_name eval_frcnn_baseline
 ```
 
-### Debug using part of the dataset
+### YOLO comparison
+
 ```bash
 python eval_all_v2.py \
-  --coco_json test.json \
-  --img_dir images \
-  --cascade_best cascade_frcnn_best.pth \
-  --classes_txt classes.txt \
-  --limit_images 100
+  --coco_json data/test.json \
+  --img_dir data/images \
+  --yolo8_best weights/best.pt \
+  --score_thr 0.25 \
+  --iou_thr 0.50 \
+  --device cuda \
+  --run_name eval_yolov8_compare
 ```
+
+## When to use this file
+Use `eval_all_v2.py` when you want:
+- final benchmark evaluation
+- repeatable evaluation from terminal
+- saved output files
+- summary numbers for tables in reports
 
 ---
 
 # 6) `evaluator_v2.py`
 
-## Purpose
-This file is the **evaluation backend** used by `eval_all_v2.py`.
+## Main role
+This file is the **metric and evaluation backend** used by `eval_all_v2.py`.
 
-## Main job of this file
-It handles the core evaluation logic:
-- load COCO data
-- load ground truth per image
-- store predictions in a shared format
-- match predictions to ground truth
-- build confusion matrix
-- compute precision, recall, F1, and mean IoU
-- compute COCO mAP using saved detections
-- save CSV/JSON/PNG outputs
+It is responsible for:
+- reading COCO annotations
+- matching predictions and ground truth
+- building confusion matrix
+- computing precision, recall, F1
+- computing mean IoU
+- creating COCO JSON results
+- running COCO mAP evaluation
+- saving CSV/JSON outputs
 
-## Main data classes
+Usually, you do not run this file directly.  
+Instead, it is called by `eval_all_v2.py`.
+
+## Main classes / functions inside
 
 ### `Prediction`
-Stores:
-- `boxes`
-- `scores`
-- `labels`
+Small structure for storing:
+- boxes
+- scores
+- labels
 
 ### `GroundTruth`
-Stores:
-- `boxes`
-- `labels`
+Small structure for storing:
+- boxes
+- labels
 
-## Important functions
+### `load_coco_info()`
+Loads COCO annotations and builds mappings between category IDs and internal class labels.
 
-### `load_coco_info(coco_json)`
-Loads COCO annotations, category mappings, and image IDs.
+### `get_image_path()`
+Gets the correct image path from COCO image info and the selected image folder.
 
-### `get_image_path(coco, image_id, image_dir)`
-Builds the full image path from a COCO image entry.
-
-### `load_gt_for_image(coco, image_id, catid_to_label)`
+### `load_gt_for_image()`
 Loads ground-truth boxes and labels for one image.
 
-### `greedy_match(pred, gt, iou_thr=0.50)`
-Greedily matches predictions to ground truth using IoU and prediction score order.
+### `greedy_match()`
+Matches predictions with ground truth using greedy IoU-based matching.
 
-### `build_confusion_matrix(...)`
-Builds the raw detection confusion matrix including background row/column.
+### `build_confusion_matrix()`
+Builds a raw confusion matrix including background handling.
 
-### `save_confusion_plot(cm, labels, out_png, title)`
-Saves the confusion matrix figure.
+### `save_confusion_plot()`
+Saves the confusion matrix plot as an image.
 
-### `compute_class_metrics(...)`
-Computes per-class TP, FP, FN, precision, recall, F1, and mean IoU.
+### `compute_class_metrics()`
+Computes TP, FP, FN, precision, recall, F1, and mean IoU per class.
 
-### `coco_map_from_json(coco_gt, det_json_path)`
-Runs official COCO evaluation from saved detection JSON.
+### `coco_map_from_json()`
+Runs COCO mAP evaluation from a saved detection JSON file.
 
-### `save_predictions_as_coco_json(...)`
-Writes model predictions to COCO detection JSON format.
+### `save_predictions_as_coco_json()`
+Converts prediction results into a COCO-style detection JSON file.
 
-### `run_full_evaluation(...)`
-Main evaluation pipeline:
-- inference on all images
+### `run_full_evaluation()`
+This is the main function of the file.  
+It performs the full evaluation pipeline:
+- inference over all images
 - save detections JSON
 - compute COCO mAP
 - compute confusion matrix
 - compute per-class metrics
-- save summary files
-- return summary dictionary
+- save plots and summaries
+- return a final summary dictionary
 
-## Output files created by this module
-Inside the output folder, it can generate:
+## Output files produced through this module
+Typical output files inside `runs_eval/<run_name>/<model_name>/`:
+
 - `detections_coco.json`
 - `confusion_matrix_counts.csv`
 - `confusion_matrix.png`
@@ -840,71 +925,80 @@ Inside the output folder, it can generate:
 
 # 7) `models_v2.py`
 
-## Purpose
-This file defines the detector-building and model-loading logic.
+## Main role
+This file contains **model-building and model-loading helpers**.
 
-## Main job of this file
-It provides:
-- a YOLO prediction wrapper
-- a Faster R-CNN builder
-- a custom Cascade Faster R-CNN builder
-- a wrapper that loads saved TorchVision checkpoints and runs inference
+It is responsible for:
+- wrapping YOLO prediction
+- building Faster R-CNN
+- building Cascade Faster R-CNN
+- loading checkpoint weights
+- running inference for local evaluation
 
-## Important classes and functions
+This file is used by `eval_all_v2.py`, and indirectly supports `app_v2.py` because both need to rebuild or load the model correctly.
+
+## Main classes / functions inside
 
 ### `YOLOPredictor`
-Loads a YOLO checkpoint and exposes `predict_one(...)`.
+Wrapper around Ultralytics YOLO.
+It provides `predict_one()` in a unified format.
 
-### `build_faster_rcnn(num_classes, min_size=600, max_size=1000, pretrained=False)`
-Builds a Faster R-CNN model and replaces the box predictor head.
+### `build_faster_rcnn()`
+Builds a TorchVision Faster R-CNN model and replaces the default box predictor.
 
 ### `ClassAgnosticFastRCNNPredictor`
-Small class for class score prediction + class-agnostic box regression.
+Defines a class-agnostic predictor.
 
-### `decode_boxes(...)`
-Decodes box deltas into image-space boxes.
+### `decode_boxes()`
+Decodes box deltas into actual bounding boxes.
 
-### `refine_boxes(...)`
-Applies decoded boxes and clips them to image size.
+### `refine_boxes()`
+Refines proposal boxes and clips them to the image size.
 
 ### `TwoFCHead`
-Two fully connected layers used in the detector head.
+Defines the fully connected head for RoI features.
 
 ### `ClassAgnosticPredictor`
-Predictor for class score and class-agnostic box regression.
+Defines the class and box predictor used in the cascade head.
 
 ### `CascadeRoIHeads`
-Custom multi-stage RoI head for the cascade-style detector.
+Defines the custom Cascade Faster R-CNN RoI head.
 
-### `build_cascade_frcnn(num_classes, min_size=600, max_size=1000)`
-Creates the custom Cascade Faster R-CNN model starting from a Faster R-CNN backbone.
+### `build_cascade_frcnn()`
+Builds the Cascade Faster R-CNN architecture.
 
 ### `DetectorWrapper`
-Loads a checkpoint, moves model to device, runs inference, and returns predictions in shared format.
+Loads a checkpoint, moves the model to the correct device, and provides `predict_one()` for a single image.
 
-## When to use this file
-Use this module whenever you need to:
-- rebuild a detector before loading `.pth`
-- run TorchVision detector inference from saved checkpoints
-- share one prediction format across different detector types
+## Important note
+If the checkpoint was saved with:
+- `model_state_dict`
+or
+- the raw state dict
+
+the wrapper is written to handle both cases.
 
 ---
 
 # 8) `requirements.txt`
 
-## Purpose
-This file lists the Python dependencies needed to run the project locally.
+## Main role
+This file lists the Python packages needed to run the local scripts and support the notebooks.
 
-## Main packages included
-- numerical/data handling: `numpy`, `pandas`
-- image and plotting: `opencv-python`, `matplotlib`, `Pillow`, `seaborn`
-- ML/CV: `torch`, `torchvision`, `ultralytics`, `scikit-learn`
-- annotation/evaluation: `pycocotools`
-- GUI: `PyQt5`
-- utility/config: `tqdm`, `PyYAML`
+Typical packages include:
+- `numpy`
+- `pandas`
+- `opencv-python`
+- `matplotlib`
+- `PyQt5`
+- `torch`
+- `torchvision`
+- `ultralytics`
+- `pycocotools`
+- `tqdm`
+- plus some helper libraries such as `Pillow`, `PyYAML`, `scikit-learn`, and `seaborn`
 
-## When to use this file
-Use it right after creating the virtual environment:
+## How to use it
 
 ```bash
 pip install -r requirements.txt
@@ -912,96 +1006,229 @@ pip install -r requirements.txt
 
 ---
 
-## How to run the project locally after installation
+## How All Files Connect Together
 
-### Run the desktop GUI
+This is the most important relationship in the repository.
+
+### Training side
 ```bash
-python app_v2.py
+AI_TECH_PROJECT_TRAIN_casecade_frcnn_v2.ipynb
+    -> trains the main Cascade Faster R-CNN model
+    -> saves the checkpoint
 ```
 
-### Run command-line evaluation
+### Local inspection side
 ```bash
-python eval_all_v2.py --coco_json test.json --img_dir images --yolo8_best best.pt
+app_v2.py
+    -> loads the trained checkpoint
+    -> loads image folder + COCO JSON
+    -> runs local visual inspection
+```
+
+### Local benchmark side
+```bash
+eval_all_v2.py
+    -> uses models_v2.py to rebuild/load the detector
+    -> uses evaluator_v2.py to compute metrics
+    -> saves result files
+```
+
+### Comparison side
+```bash
+AI_TECH_PROJECT_TRAINING_FASTER_RCNN_v2.ipynb
+AI_TECH_PROJECT_TRAINING_YOLO_v2.ipynb
+    -> train baseline / comparison models
+    -> optional use with eval_all_v2.py
+```
+
+So if the project is centered on **Cascade Faster R-CNN**, the real core chain is:
+
+```bash
+AI_TECH_PROJECT_TRAIN_casecade_frcnn_v2.ipynb
+    -> trained checkpoint
+    -> app_v2.py
+    -> eval_all_v2.py
+        -> models_v2.py
+        -> evaluator_v2.py
 ```
 
 ---
 
-## Suggested folder layout for another machine
+## Example Local Folder Layout
+
+A clean local project layout could look like this:
 
 ```bash
 AI_TECH_PROJECT/
-├── images/
-│   ├── 0001.jpg
-│   ├── 0002.jpg
-│   └── ...
-├── test.json
-├── classes.txt
-├── best.pt
-├── faster_rcnn_best.pth
-├── cascade_frcnn_best.pth
 ├── app_v2.py
 ├── eval_all_v2.py
 ├── evaluator_v2.py
 ├── models_v2.py
 ├── requirements.txt
-└── README.md
+├── classes.txt
+├── data/
+│   ├── images/
+│   │   ├── 0001.jpg
+│   │   ├── 0002.jpg
+│   │   └── ...
+│   └── test.json
+├── weights/
+│   ├── cascade_frcnn_best.pth
+│   ├── faster_rcnn_best.pth
+│   └── best.pt
+├── AI_TECH_PROJECT_TRAIN_casecade_frcnn_v2.ipynb
+├── AI_TECH_PROJECT_TRAINING_FASTER_RCNN_v2.ipynb
+└── AI_TECH_PROJECT_TRAINING_YOLO_v2.ipynb
 ```
 
 ---
 
-## Common problems and how to fix them
+## How to Run the Main GUI
 
-### 1. `ModuleNotFoundError`
-Cause:
-- file names and import names do not match
+If your main model is Cascade Faster R-CNN:
 
-Fix:
-- rename the files or edit the imports
+```bash
+python app_v2.py
+```
 
-### 2. `pycocotools` install problem on Windows
-Fix:
-- try installing with pip inside the virtual environment first
-- if it fails, use a compatible wheel or Conda-based install
+Then in the GUI:
 
-### 3. CUDA not detected
-Fix:
-- check NVIDIA driver
-- check CUDA-compatible PyTorch install
-- try `device="cpu"` first to confirm the code works
+1. click **Choose model checkpoint**
+2. select your Cascade checkpoint
+3. click **Choose Image Folder**
+4. choose the folder containing test images
+5. click **Choose GT COCO json**
+6. select `test.json`
+7. click the run button
+8. inspect the results
 
-### 4. No predictions shown in app
-Fix:
-- check that the selected weight file is the correct model
-- check that image filenames in JSON match real files
-- check confidence threshold and category mapping
-
-### 5. Wrong number of classes for Faster/Cascade
-Fix:
-- provide `classes.txt`
-- or provide `--num_classes`
-- make sure the count matches the training setup
+Main features:
+- previous / next image browsing
+- summary text
+- predicted boxes vs ground truth
+- export CSV
+- save failed cases
+- confusion matrix
 
 ---
 
-## Suggested usage order
+## How to Run Final Evaluation for the Main Model
 
-If you are using this project for the first time, this order is the easiest:
+```bash
+python eval_all_v2.py \
+  --coco_json data/test.json \
+  --img_dir data/images \
+  --cascade_best weights/cascade_frcnn_best.pth \
+  --classes_txt classes.txt \
+  --score_thr 0.25 \
+  --iou_thr 0.50 \
+  --device cuda \
+  --run_name eval_cascade_main
+```
 
-1. Train models in Colab with the notebooks  
-2. Download trained weights  
-3. Move weights and dataset to local machine  
-4. Fix import names if needed  
-5. Install requirements  
-6. Test the GUI with `app_v2.py`  
-7. Run full benchmark with `eval_all_v2.py`
+### If you want CPU instead of GPU
+
+```bash
+python eval_all_v2.py \
+  --coco_json data/test.json \
+  --img_dir data/images \
+  --cascade_best weights/cascade_frcnn_best.pth \
+  --classes_txt classes.txt \
+  --score_thr 0.25 \
+  --iou_thr 0.50 \
+  --device cpu \
+  --run_name eval_cascade_cpu
+```
 
 ---
 
-## Final note
+## Common Problems and Notes
 
-In short:
+## 1) `ModuleNotFoundError`
+Make sure:
+- the scripts are in the same folder
+- your virtual environment is activated
+- all packages from `requirements.txt` are installed
 
-- use the **notebooks** for training in **Google Colab**
-- use the **Python scripts** for local evaluation in **VS Code**
-- keep all paths, weights, class counts, and annotation files consistent
-- fix import names first before trying to run the local files
+## 2) Checkpoint loads but some keys are missing
+This can happen if:
+- the class count does not match
+- the architecture differs from the checkpoint used during training
+- the checkpoint was saved from a slightly different version of the model
+
+For Cascade/FRCNN, always make sure:
+- `classes.txt` is correct
+- the rebuilt model matches the training configuration
+
+## 3) No images found
+Make sure:
+- `--img_dir` points to the real image folder
+- file names in the COCO JSON match the image file names in the folder
+
+## 4) GUI does not open
+Possible reasons:
+- PyQt5 is not installed
+- the machine does not support GUI display properly
+- remote/headless environment is being used
+
+In that case, use `eval_all_v2.py` instead of the GUI.
+
+## 5) `pycocotools` install issue on Windows
+On some Windows environments, `pycocotools` can be harder to install.  
+If that happens, use an alternative compatible build or install tools required for compilation.
+
+## 6) Wrong class count
+If evaluation fails or predictions look wrong, check:
+- `classes.txt`
+- category IDs in COCO JSON
+- label mapping logic
+- whether background is handled as `+1` internally for TorchVision models
+
+---
+
+## Final Recommendation
+
+If this project is presented as a full pipeline, the cleanest explanation is:
+
+- **Cascade Faster R-CNN is the main model**
+- `AI_TECH_PROJECT_TRAIN_casecade_frcnn_v2.ipynb` is the main training notebook
+- `app_v2.py` is the local GUI for visual checking
+- `eval_all_v2.py` is the final benchmark script
+- `models_v2.py` rebuilds/loads the model
+- `evaluator_v2.py` computes metrics
+- `AI_TECH_PROJECT_TRAINING_FASTER_RCNN_v2.ipynb` and `AI_TECH_PROJECT_TRAINING_YOLO_v2.ipynb` are supporting notebooks for comparison/baseline experiments
+
+That gives a complete engineering workflow from training to local evaluation.
+
+---
+
+## Short Version of the Main Usage
+
+### Train the main model
+Use:
+
+```bash
+AI_TECH_PROJECT_TRAIN_casecade_frcnn_v2.ipynb
+```
+
+### Inspect prediction visually
+Use:
+
+```bash
+python app_v2.py
+```
+
+### Run final evaluation
+Use:
+
+```bash
+python eval_all_v2.py \
+  --coco_json data/test.json \
+  --img_dir data/images \
+  --cascade_best weights/cascade_frcnn_best.pth \
+  --classes_txt classes.txt \
+  --score_thr 0.25 \
+  --iou_thr 0.50 \
+  --device cuda \
+  --run_name eval_cascade_main
+```
